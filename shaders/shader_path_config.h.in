@@ -1,0 +1,3 @@
+#pragma once
+
+#define SHADER_LIB_PATH "@shader_lib_path@"
