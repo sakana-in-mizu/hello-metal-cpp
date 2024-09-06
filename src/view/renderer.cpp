@@ -18,10 +18,13 @@ Renderer::Renderer(MTL::Device *device) : m_device(device->retain()) {
     m_command_queue = device->newCommandQueue();
     buildMesh();
     buildPipeline();
+
+    m_semaphore = dispatch_semaphore_create(s_max_frame_in_flight);
 }
 
 Renderer::~Renderer() {
     m_pipeline->release();
+
     m_vertex_buffer->release();
     m_index_buffer->release();
     m_device->release();
@@ -31,7 +34,13 @@ Renderer::~Renderer() {
 void Renderer::draw(MTK::View *view) {
     NS::AutoreleasePool *pool = NS::AutoreleasePool::alloc()->init();
 
+    m_frame = (m_frame + 1) % s_max_frame_in_flight;
+
     MTL::CommandBuffer *command_buffer = m_command_queue->commandBuffer();
+    dispatch_semaphore_wait(m_semaphore, DISPATCH_TIME_FOREVER);
+    command_buffer->addCompletedHandler([this](MTL::CommandBuffer *command_buffer) {
+        dispatch_semaphore_signal(m_semaphore);
+    });
 
     MTL::RenderPassDescriptor *render_pass = view->currentRenderPassDescriptor();
     MTL::RenderCommandEncoder *encoder     = command_buffer->renderCommandEncoder(render_pass);

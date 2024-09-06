@@ -11,8 +11,11 @@ struct VertexOutput {
     half3 color;
 };
 
-VertexOutput vertex vertexMain(VertexInput input [[stage_in]]) {
+VertexOutput vertex vertexMain(
+    VertexInput input [[stage_in]]
+) {
     VertexOutput output;
+
     output.position = float4(input.position, 1.0);
     output.color = half3(input.color);
     return output;
